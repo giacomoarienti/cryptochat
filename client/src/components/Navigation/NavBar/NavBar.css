@@ -1,0 +1,35 @@
+.nav {
+    display: block;
+}
+
+.nav-item {
+    padding: 0 2px;
+}
+
+.nav-item::after {
+    content: "";
+    display: block;
+    margin: 0 auto; 
+    width: 0%;
+    border-bottom: 2px solid white;
+}
+
+.nav-item:hover::after {
+    width: 80%;
+    transition: .5s;
+    border-color: #2d363f;
+}
+
+.link-active::after {
+    content: "";
+    display: block;
+    margin: 0 auto; 
+    width: 80%;
+    border-bottom: 2px solid #2d363f;
+}
+
+@media only screen and (max-width: 770px) {    
+    .nav  {
+        display: none;
+    }
+}

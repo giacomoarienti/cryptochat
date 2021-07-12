@@ -1,0 +1,39 @@
+.navmenu {
+    display: none;
+}
+
+.navmenu .navbar-toggler {
+    border: none;
+    outline: none !important
+}
+
+.navmenu .link-active {
+    font-weight: bold;
+}
+
+@media only screen and (max-width: 770px) {    
+    .navmenu {
+        display: block;
+    }
+
+    .navmenu .navbar-brand {
+        width: 73%;
+    }
+
+    .navigation .container {
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .navmenu .nav-item:hover::after{
+        border: none
+    }
+
+    .navmenu .nav-item::after {
+        border: none;
+    }
+
+    .navmenu .link-active::after {
+        border: none
+    }
+}
