@@ -31,7 +31,7 @@ const registerUser = (req, res) => {
 
   // set the token
   res
-    .cookie("token", jwtToken, { expires: new Date(Date.now() + 86400), httpOnly: true })
+    .cookie("token", jwtToken, { expires: new Date(Date.now() + 86400000), httpOnly: true })
     .sendStatus(200);
 };
 

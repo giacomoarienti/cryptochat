@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {newDF, completeDF, reciveDF, getKey, encrypt, decrypt} from "../../utils/crypto";
+import {checkUser} from "../../api/userService";
 import { io } from "socket.io-client";
 
 import Chat from "./Chat/Chat";
 import SideBar from "./SideBar/SideBar";
+import Loading from "../Loading/Loading";
 import history from "../../utils/history";
 
 import "./Dashboard.css";
@@ -20,15 +22,28 @@ function Dashboard({ username }) {
 
   let users = [];
   const [showNewChat, setShowNewChat] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState();
+  const [errorMessage, setErrorMessage] = useState();
 
   // Socket
   const socket = io();
 
   // create new chat when form is submitted
-  const newChat = (event) => {
+  const newChat = async (event) => {
     event.preventDefault();
     const reciver = event.target.username.value;
+
+    if(reciver === username) {
+      return setErrorMessage("Invalid user");
+    }
+
+    let found = await checkUser(reciver);
+    if(!found) {
+      return setErrorMessage("User not found !");
+    }
+
+    setLoading(true);
 
     const [generator, message] = newDF();
 
@@ -41,6 +56,8 @@ function Dashboard({ username }) {
     });
 
     users.push({ username: reciver, chat: [], df: generator, key: null });
+  
+    setLoading(false);
   };
 
   // send message
@@ -108,21 +125,29 @@ function Dashboard({ username }) {
   */
   return (
     <div className="dashboard">
+      {loading && (
+        <Loading/>
+      )}
+
+      {errorMessage && 
+      <div className="alert text-center alert-danger" role="alert" onClick={() => setErrorMessage("")}/>
+      }
+
       <div className="side-bar">
         {users.forEach((user) => {
           <SideBar
             username={user.username}
-            onClick={setCurrentUser(user.username)}
+            onClick={() => setCurrentUser(user.username)}
           />;
         })}
       </div>
 
       <div className="new-chat">
-        <button className="new-chat-button" onClick={setShowNewChat(!showNewChat)}>New Chat</button>
+        <button className="new-chat-button" onClick={() => setShowNewChat(!showNewChat)}>New Chat</button>
 
         {showNewChat && (
           <form className="new-chat-form" onSubmit={newChat}>
-            <input type="text" className="new-chat-input" placeholder="Username"></input>
+            <input type="text" name="username" className="new-chat-input" placeholder="Username"></input>
             <input type="submit" className="new-chat-submit" value="Send" name="reciver"></input>
           </form>
         )}

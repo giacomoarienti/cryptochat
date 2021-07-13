@@ -41,4 +41,20 @@ async function registerUser(username) {
 
 }
 
-export { getUsername, logoutUser, registerUser };
+async function checkUser(username) {
+  let resp = await fetch(backend + "/api/user/" + username, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (resp.status === 200) {
+    return true;
+  }
+
+  return false;
+}
+
+export { getUsername, logoutUser, registerUser, checkUser };

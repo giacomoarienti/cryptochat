@@ -93,7 +93,7 @@ class Register extends Component {
                     <div className="col-md-12 text-center ">
                       <button
                         type="submit"
-                        className="btn btn-block mybtn btn-primary tx-tfm"
+                        className="btn btn-block mybtn tx-tfm"
                         disabled={this.state.loading}
                       >
                         Register
