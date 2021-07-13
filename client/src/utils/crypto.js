@@ -57,7 +57,7 @@ function decrypt(content, key, iv) {
   return decrpyted.toString();
 }
 
-export default {newDF, completeDF, reciveDF, getKey, encrypt, decrypt}
+export {newDF, completeDF, reciveDF, getKey, encrypt, decrypt}
 
 /*const [df, AKeys] = newDF();
 const BKeys = reciveDF(AKeys);

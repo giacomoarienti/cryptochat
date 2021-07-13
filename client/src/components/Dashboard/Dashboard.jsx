@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {newDF, completeDF, reciveDF, getKey, encrypt, decrypt} from "../../../utils/crypto";
+import {newDF, completeDF, reciveDF, getKey, encrypt, decrypt} from "../../utils/crypto";
 import { io } from "socket.io-client";
 
 import Chat from "./Chat/Chat";
@@ -10,14 +10,16 @@ import "./Dashboard.css";
 
 function Dashboard({ username }) {
   // check authentication
-  if (!username) {
-    history.push("/");
-    window.location.reload();
-    return;
-  }
+  useEffect(() => {
+    if(!username) {
+      history.push("/");
+      window.location.reload();
+      return;
+    }
+  }, [username]);
 
-  const users = [];
-  const [newChat, setNewChat] = useState(false);
+  let users = [];
+  const [showNewChat, setShowNewChat] = useState(false);
   const [currentUser, setCurrentUser] = useState();
 
   // Socket
@@ -107,7 +109,7 @@ function Dashboard({ username }) {
   return (
     <div className="dashboard">
       <div className="side-bar">
-        {this.state.users.forEach((user) => {
+        {users.forEach((user) => {
           <SideBar
             username={user.username}
             onClick={setCurrentUser(user.username)}
@@ -116,10 +118,10 @@ function Dashboard({ username }) {
       </div>
 
       <div className="new-chat">
-        <button className="new-chat-button" onClick={setNewChat(!newChat)}>New Chat</button>
+        <button className="new-chat-button" onClick={setShowNewChat(!showNewChat)}>New Chat</button>
 
-        {newChat && (
-          <form className="new-chat-form" onSubmit={this.newChat()}>
+        {showNewChat && (
+          <form className="new-chat-form" onSubmit={newChat}>
             <input type="text" className="new-chat-input" placeholder="Username"></input>
             <input type="submit" className="new-chat-submit" value="Send" name="reciver"></input>
           </form>
@@ -127,8 +129,8 @@ function Dashboard({ username }) {
       </div>
 
       <div className="chat">
-        {this.state.users.forEach((user) => {
-          this.state.currentUser === user.username && (
+        {users.forEach((user) => {
+          currentUser === user.username && (
             <Chat
               username={user.username}
               chat={user.chat}
@@ -138,7 +140,7 @@ function Dashboard({ username }) {
       </div>
 
       <div className="send-message">
-        <form onSubmit={this.sendMessage()}>
+        <form onSubmit={sendMessage}>
           <input type="text" name="message" className="message-text" placeholder="Send a message..."></input>
           <input type="submit" className="sumbit-button" value="Send"></input>
         </form>

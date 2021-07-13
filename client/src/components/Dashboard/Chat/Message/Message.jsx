@@ -5,7 +5,7 @@ import FileSvg from "../../../../images/file.svg";
 
 function Message({type, content, from}) {
     return (
-        <div className={`${from == "me" ? "sent" : "recived"}-message`}>
+        <div className={`${from === "me" ? "sent" : "recived"}-message`}>
             {type === "message" ? (
                 <div className="message-content">
                     <label className="message-text">{content}</label>

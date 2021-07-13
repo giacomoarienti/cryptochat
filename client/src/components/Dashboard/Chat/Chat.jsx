@@ -1,5 +1,3 @@
-import React, { useEffect, useState } from "react";
-
 import Message from "./Message/Message";
 
 import "./Chat.css";
