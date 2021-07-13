@@ -31,7 +31,7 @@ const registerUser = (req, res) => {
 
   // set the token
   res
-    .cookie("token", jwtToken, { expires: 86400, httpOnly: true })
+    .cookie("token", jwtToken, { expires: new Date(Date.now() + 86400), httpOnly: true })
     .sendStatus(200);
 };
 
@@ -55,4 +55,11 @@ const logoutUser = (req, res) => {
   res.sendStatus(200);
 };
 
-module.exports = { registerUser, getUser, logoutUser };
+function checkUser(username) {
+  if(users.includes(username)) {
+    return true;
+  }
+  return false;
+}
+
+module.exports = { registerUser, getUser, logoutUser, checkUser };

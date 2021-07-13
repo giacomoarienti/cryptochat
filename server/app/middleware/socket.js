@@ -11,7 +11,8 @@ const getUsernameFromToken = (token) => {
 module.exports = function (io) {
   io.use((socket, next) => {
     if (socket.handshake.headers.cookie) {
-      socket.username = getUsernameFromToken(socket.handshake.headers.cookie)
+      socket.username = getUsernameFromToken(socket.handshake.headers.cookie);
+      socket.id = socket.username;
       if (socket.username) {
         return next();
       }

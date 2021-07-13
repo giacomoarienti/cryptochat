@@ -19,9 +19,9 @@ function completeDF(df, B) {
 }
 
 // Calc shared secret K
-function reciveDF(keys) {
-  const bob = createDiffieHellman(keys.p, keys.g);
-  return { B: bob.generateKeys(), K: bob.computeSecret(keys.A) };
+function reciveDF({p, g, A}) {
+  const bob = createDiffieHellman(p, g);
+  return { B: bob.generateKeys(), K: bob.computeSecret(A) };
 }
 
 // Get key
@@ -43,19 +43,21 @@ function encrypt(key, text) {
 }
 
 // Decrypt
-function decrypt(hash, key) {
+function decrypt(content, key, iv) {
   const decipher = createDecipheriv(
     "aes-256-cbc",
     key,
-    Buffer.from(hash.iv, "hex")
+    Buffer.from(iv, "hex")
   );
   const decrpyted = Buffer.concat([
-    decipher.update(Buffer.from(hash.content, "hex")),
+    decipher.update(Buffer.from(content, "hex")),
     decipher.final(),
   ]);
 
   return decrpyted.toString();
 }
+
+export default {newDF, completeDF, reciveDF, getKey, encrypt, decrypt}
 
 /*const [df, AKeys] = newDF();
 const BKeys = reciveDF(AKeys);
