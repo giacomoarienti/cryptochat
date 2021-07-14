@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import {newDF, completeDF, reciveDF, getKey, encrypt, decrypt} from "../../utils/crypto";
-import {checkUser} from "../../api/userService";
+import {
+  newDF,
+  completeDF,
+  reciveDF,
+  getKey,
+  encrypt,
+  decrypt,
+} from "../../utils/crypto";
+import { checkUser } from "../../api/userService";
 import { io } from "socket.io-client";
 
 import Chat from "./Chat/Chat";
@@ -13,7 +20,7 @@ import "./Dashboard.css";
 function Dashboard({ username }) {
   // check authentication
   useEffect(() => {
-    if(!username) {
+    if (!username) {
       history.push("/");
       window.location.reload();
       return;
@@ -34,18 +41,22 @@ function Dashboard({ username }) {
     event.preventDefault();
     const reciver = event.target.username.value;
 
-    if(reciver === username) {
+    console.log(reciver);
+
+    if (reciver === username) {
       return setErrorMessage("Invalid user");
     }
 
     let found = await checkUser(reciver);
-    if(!found) {
+    if (!found) {
       return setErrorMessage("User not found !");
     }
 
     setLoading(true);
 
     const [generator, message] = newDF();
+
+    console.log(message);
 
     // new chat event
     socket.emit("newChat", {
@@ -55,9 +66,12 @@ function Dashboard({ username }) {
       A: message.A,
     });
 
+
     users.push({ username: reciver, chat: [], df: generator, key: null });
-  
+    console.log(users);
+
     setLoading(false);
+    setShowNewChat(false);
   };
 
   // send message
@@ -69,10 +83,14 @@ function Dashboard({ username }) {
       if (users[i].username === currentUser) {
         const encrypted = encrypt(users[i].key, message);
 
-        socket.emit("sendMessage", {reciver: currentUser, message: encrypted.content, iv: encrypted.iv});
+        socket.emit("sendMessage", {
+          reciver: currentUser,
+          message: encrypted.content,
+          iv: encrypted.iv,
+        });
       }
     }
-  }
+  };
 
   // listen for incoming events
   useEffect(() => {
@@ -101,7 +119,7 @@ function Dashboard({ username }) {
       for (var i = 0; i < users.length; i++) {
         if (users[i].username === from) {
           const decrypted = decrypt(content, users[i].key, iv);
-          
+
           // push the message to the chat history
           users[i].chat.push({
             type: "message",
@@ -116,6 +134,9 @@ function Dashboard({ username }) {
     socket.on("newFile", (from, content, iv) => {});
   }, [socket]);
 
+
+  useEffect(() => {return}, [users]);
+
   /*
   Components:
   - SideBar
@@ -125,14 +146,21 @@ function Dashboard({ username }) {
   */
   return (
     <div className="dashboard">
-      {loading && (
-        <Loading/>
+      {loading && <Loading />}
+
+      {errorMessage && (
+        <div className="error-message">
+          <div
+            className="alert text-center alert-danger"
+            role="alert"
+            onClick={() => setErrorMessage("")}
+          >
+            {errorMessage}
+          </div>
+        </div>
       )}
 
-      {errorMessage && 
-      <div className="alert text-center alert-danger" role="alert" onClick={() => setErrorMessage("")}/>
-      }
-
+      <span className="side-bar-toggle"></span>
       <div className="side-bar">
         {users.forEach((user) => {
           <SideBar
@@ -142,33 +170,64 @@ function Dashboard({ username }) {
         })}
       </div>
 
-      <div className="new-chat">
-        <button className="new-chat-button" onClick={() => setShowNewChat(!showNewChat)}>New Chat</button>
+      <div className="user-info">
+        <div className="username-info">
+          {currentUser && <div className="currentuser"> {currentUser} </div>}
+        </div>
 
-        {showNewChat && (
-          <form className="new-chat-form" onSubmit={newChat}>
-            <input type="text" name="username" className="new-chat-input" placeholder="Username"></input>
-            <input type="submit" className="new-chat-submit" value="Send" name="reciver"></input>
+        <div className="new-chat">
+          <button
+            className="new-chat-button"
+            onClick={() => setShowNewChat(!showNewChat)}
+          >
+            New Chat
+          </button>
+
+          {showNewChat && (
+            <div className="new-chat-div">
+              <form className="new-chat-form" onSubmit={newChat}>
+                <a className="new-chat-icon" onClick={() => setShowNewChat(!showNewChat)} >X</a>
+                <div className="new-chat-flex">
+                  <label className="new-chat-label">Username</label>
+                  <input
+                    type="text"
+                    name="username"
+                    className="new-chat-input"
+                    placeholder="Username"
+                  ></input>
+                  <input
+                    type="submit"
+                    className="new-chat-submit"
+                    value="Send"
+                    name="reciver"
+                  ></input>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="send-text">
+        <div className="send-message">
+          <form onSubmit={sendMessage}>
+            <input
+              type="text"
+              name="message"
+              className="message-text"
+              placeholder="Send a message..."
+            ></input>
+            <input type="submit" className="submit-button" disabled={currentUser ? false : true} value="Send"></input>
           </form>
-        )}
+        </div>
       </div>
 
       <div className="chat">
         {users.forEach((user) => {
           currentUser === user.username && (
-            <Chat
-              username={user.username}
-              chat={user.chat}
-            />
+            <Chat username={user.username} chat={user.chat} />
           );
         })}
-      </div>
-
-      <div className="send-message">
-        <form onSubmit={sendMessage}>
-          <input type="text" name="message" className="message-text" placeholder="Send a message..."></input>
-          <input type="submit" className="sumbit-button" value="Send"></input>
-        </form>
       </div>
     </div>
   );
