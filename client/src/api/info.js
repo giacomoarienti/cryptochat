@@ -1,2 +1,1 @@
-const backend = "http://localhost:8080";
-export {backend};
+export const backend = "http://localhost:8080";

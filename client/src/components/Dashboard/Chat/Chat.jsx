@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { chatRequestIn,  chatRequestComplete, newMessage, deleteChatRequest } from "../../../api/chat";
 import Message from "./Message/Message";
 
 import "./Chat.css";
@@ -12,11 +11,6 @@ class Chat extends Component {
       username: this.props.username,
       chat: [],
     };
-
-    chatRequestIn();
-    chatRequestComplete();
-    newMessage();
-    deleteChatRequest();
   }
 
   componentDidMount() {

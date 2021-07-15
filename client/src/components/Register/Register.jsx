@@ -9,19 +9,12 @@ class Register extends Component {
   constructor(props) {
     super(props);
     this.handleRegister = this.handleRegister.bind(this);
-    this.onChangeUsername = this.onChangeUsername.bind(this);
    
     this.state = {
       username: "",
       successful: false,
       message: "",
     };
-  }
-
-  onChangeUsername(e) {
-    this.setState({
-      username: e.target.value,
-    });
   }
 
   async handleRegister(e) {
@@ -86,7 +79,7 @@ class Register extends Component {
                         value={this.state.username}
                         id="name"
                         placeholder="Enter username"
-                        onChange={this.onChangeUsername}
+                        onChange={(e) => this.setState({ username: e.target.value})}
                       />
                     </div>
 

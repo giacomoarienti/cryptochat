@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { newChatRequest, sendMessage } from "../../api/chat";
+import { socket, newChatRequest, sendMessage, deleteChatRequest, newMessage, chatRequestComplete, chatRequestIn } from "../../api/chat";
 
 import Chat from "./Chat/Chat";
 import Message from "./Chat/Message/Message";
@@ -19,29 +19,43 @@ class Dashboard extends Component {
       currentUser: null,
       errorMessage: "",
       username: null,
+      message: ""
     };
+
+    this.setState({username: this.props.username});
+    this.checkAuth();
 
     this.sendMessageH = this.sendMessageH.bind(this);
     this.newChat = this.newChat.bind(this);
   }
 
-  componentDidMount() {
-    // check authentication
-    if (!this.props.username) {
+  checkAuth() {
+    if (!this.state.username) {
       history.push("/");
       window.location.reload();
       return;
     }
+  }
 
-    this.setState({username: this.props.username});
-    //window.addEventListener('storage', this.localStorageUpdated)
+  componentDidMount() {
+    // socket events
+    socket.on("requestDeleteChat", (from, secret) => deleteChatRequest(from, secret));
+    socket.on("newMessage", (from, content, iv) => newMessage(from, content, iv));
+    socket.on("chatRequestComplete", (from, keys) => chatRequestComplete(from, keys));
+    socket.on("newChatRequestIn", (from, keys) => chatRequestIn(from, keys));
+    
+    window.addEventListener('storage', () => this.setState({}));
   }
 
   componentWillUnmount() {
-    //window.removeEventListener()
+    socket.off("requestDeleteChat", (from, secret) => deleteChatRequest(from, secret));
+    socket.off("newMessage", (from, content, iv) => newMessage(from, content, iv));
+    socket.off("chatRequestComplete", (from, keys) => chatRequestComplete(from, keys));
+    socket.off("newChatRequestIn", (from, keys) => chatRequestIn(from, keys));
+  
+    window.removeEventListener('storage', () => this.setState({}));
   }
 
-  // TODO: to implement
   async newChat(event) {
     event.preventDefault();
     const reciver = event.target.username.value;
@@ -65,9 +79,8 @@ class Dashboard extends Component {
     div.appendChild(<Message type="message" content={message} from={from} />);
   }
 
-  sendMessageH(event) {
-    event.preventDefault();
-    const message = event.target.message.value;
+  sendMessageH() {
+    const message = this.state.message;
     
     if(sendMessage(message, this.state.currentUser)) {
       this.displayMessage(message, "me");
@@ -146,20 +159,19 @@ class Dashboard extends Component {
 
           <div className="send-text">
             <div className="send-message">
-              <form onSubmit={this.sendMessageH}>
                 <input
                   type="text"
                   name="message"
                   className="message-text"
                   placeholder="Send a message..."
+                  onChange={(e) => this.setState({message: e.target.value})}
                 ></input>
-                <input
-                  type="submit"
+                <button
                   className="submit-button"
                   disabled={this.state.currentUser ? false : true}
                   value="Send"
-                ></input>
-              </form>
+                  onClick={this.sendMessageH}
+                ></button>
             </div>
           </div>
 
