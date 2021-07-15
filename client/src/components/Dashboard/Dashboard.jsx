@@ -1,6 +1,8 @@
 import React, { Component } from "react";
+import { newChatRequest, sendMessage } from "../../api/chat";
 
 import Chat from "./Chat/Chat";
+import Message from "./Chat/Message/Message";
 import SideBar from "./SideBar/SideBar";
 import Loading from "../Loading/Loading";
 import history from "../../utils/history";
@@ -11,45 +13,67 @@ class Dashboard extends Component {
   constructor(props) {
     super(props);
 
-    this.newChat = this.newChat.bind(this);
-    this.sendMessage = this.sendMessage.bind(this);
-
     this.state = {
       showNewChat: false,
       loading: false,
       currentUser: null,
       errorMessage: "",
-      username: this.props.username,
+      username: null,
     };
+
+    this.sendMessageH = this.sendMessageH.bind(this);
+    this.newChat = this.newChat.bind(this);
   }
 
   componentDidMount() {
     // check authentication
-    if (!this.state.username) {
+    if (!this.props.username) {
       history.push("/");
       window.location.reload();
       return;
     }
+
+    this.setState({username: this.props.username});
+    //window.addEventListener('storage', this.localStorageUpdated)
+  }
+
+  componentWillUnmount() {
+    //window.removeEventListener()
   }
 
   // TODO: to implement
-  newChat() {
+  async newChat(event) {
+    event.preventDefault();
+    const reciver = event.target.username.value;
 
+    if (reciver === this.state.username) {
+      this.setState({errorMessage: "Invalid username!"})
+      return
+    }
+
+    console.log(reciver);
+    console.log(this.state.username);
+
+    this.setState({loading: true});
+
+    const error = await newChatRequest(reciver);
+    this.setState({errorMessage: error, showNewChat: false, loading: false});
   }
 
-  sendMessage() {
-
+  displayMessage(message, from) {
+    const div = document.getElementsByClassName(`chat-${this.state.currentUser}`);
+    div.appendChild(<Message type="message" content={message} from={from} />);
   }
 
-  //window.addEventListener('storage', this.localStorageUpdated)
+  sendMessageH(event) {
+    event.preventDefault();
+    const message = event.target.message.value;
+    
+    if(sendMessage(message, this.state.currentUser)) {
+      this.displayMessage(message, "me");
+    }
+  }
 
-  /*
-  Components:
-  - SideBar
-  - Chat
-  - Send Message
-  - new Chat
-  */
   render() {
     return (
       <>
@@ -77,28 +101,28 @@ class Dashboard extends Component {
 
           <div className="user-info">
             <div className="username-info">
-              {currentUser && (
-                <div className="currentuser"> {currentUser} </div>
+              {this.state.currentUser && (
+                <div className="currentuser"> {this.state.currentUser} </div>
               )}
             </div>
 
             <div className="new-chat">
               <button
                 className="new-chat-button"
-                onClick={() => this.setState({showNewChat: !showNewChat})}
+                onClick={() => this.setState({showNewChat: !this.state.showNewChat})}
               >
                 New Chat
               </button>
 
-              {showNewChat && (
+              {this.state.showNewChat && (
                 <div className="new-chat-div">
-                  <form className="new-chat-form" onSubmit={newChat}>
-                    <a
+                  <form className="new-chat-form" onSubmit={this.newChat}>
+                    <label
                       className="new-chat-icon"
-                      onClick={() => this.setState({showNewChat: !showNewChat})}
+                      onClick={() => this.setState({showNewChat: !this.state.showNewChat})}
                     >
                       X
-                    </a>
+                    </label>
                     <div className="new-chat-flex">
                       <label className="new-chat-label">Username</label>
                       <input
@@ -122,7 +146,7 @@ class Dashboard extends Component {
 
           <div className="send-text">
             <div className="send-message">
-              <form onSubmit={sendMessage}>
+              <form onSubmit={this.sendMessageH}>
                 <input
                   type="text"
                   name="message"
@@ -132,7 +156,7 @@ class Dashboard extends Component {
                 <input
                   type="submit"
                   className="submit-button"
-                  disabled={currentUser ? false : true}
+                  disabled={this.state.currentUser ? false : true}
                   value="Send"
                 ></input>
               </form>
@@ -140,7 +164,7 @@ class Dashboard extends Component {
           </div>
 
           <div className="chat">
-            <Chat username={currentUser}/>
+            <Chat username={this.state.currentUser}/>
           </div>
         </div>
       </>

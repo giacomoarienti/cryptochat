@@ -15,25 +15,28 @@ function deleteChatH(username) {
 }
 
 function sideBar({setUser, setError}) {
-    let data = [];
-    for(user in Object.entries(localStorage)) {
-      data.push({ username: user, status: user.status });
+    const data = [];
+    for ( var i = 0, len = localStorage.length; i < len; ++i ) {
+      const username = localStorage.key(i);
+      const status = JSON.parse(localStorage.getItem(username)).status;
+      
+      data.push({ username: username, status: status });
     }
 
     return (
       <>
-        { data.forEach((user) => {
-          <div className="side-bar-item">
-            <label className="side-bar-name" onclick={() => setUser(user.username)}>{user.username}</label>
+        { data.map((user, i) => (
+          <div className="side-bar-item" key={i}>
+            <label className="side-bar-name" onClick={() => setUser(user.username)}>{user.username}</label>
             <label className="side-bar-status">{user.status}</label>
-            {user.status === "pending" && 
-              <div className="side-bar-pending">
-                <button className="side-bar-accept" onclick={() => setError(acceptChat(user.username))}/>
+            {user.status === "pending_in" && 
+              <div className="side-bar-pending-in">
+                <button className="side-bar-accept" onClick={() => setError(acceptChat(user.username))}/>
               </div>
             }
-            <button className="side-bar-delete" onclick={() => deleteChatH(user.username)}></button>
+            <button className="side-bar-delete" onClick={() => deleteChatH(user.username)}></button>
           </div>
-        })}
+        ))}
       </>
     );
 };

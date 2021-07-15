@@ -4,8 +4,8 @@ import {
   getKey,
   encrypt,
   decrypt,
-} from "../../utils/crypto";
-import { checkUser } from "../../api/userService";
+} from "../utils/crypto";
+import { checkUser } from "./userService";
 import { io } from "socket.io-client";
 
 const socket = io();
@@ -14,10 +14,6 @@ const socket = io();
 export const newChatRequest = async (reciver) => {
   if (localStorage.getItem(reciver) !== null) {
     return "Chat already exists";
-  }
-
-  if (reciver === username) {
-    return "Invalid user"
   }
 
   let found = await checkUser(reciver);
@@ -52,10 +48,6 @@ export const acceptChatRequest = async (reciver, keys) => {
     return "General error"
   }
 
-  if (reciver === username) {
-    return "Invalid user"
-  }
-
   let found = await checkUser(reciver);
   if (!found) {
     return "User not found !"
@@ -75,7 +67,7 @@ export const acceptChatRequest = async (reciver, keys) => {
     reciver,
     JSON.stringify({
       chat: [],
-      ecdh: ecdh,
+      ecdh: null,
       secret: secret,
       status: "completed",
     })
@@ -125,10 +117,11 @@ export function chatRequestComplete() {
   socket.on("chatRequestComplete", (from, keys) => {
     let data = localStorage.getItem(from)
     if (data !== null) {
-      let data = JSON.parse(data);
+      data = JSON.parse(data);
       let secret = completeECDH(data.ecdh, keys);
       secret = getKey(secret);
 
+      data.ecdh = null;
       data.secret = secret;
       data.status = "completed";
       localStorage.setItem(from, JSON.stringify(data));
@@ -145,7 +138,7 @@ export function newMessage() {
   socket.on("newMessage", (from, content, iv) => {
     let data = localStorage.getItem(from)
     if (data !== null) {
-      let data = JSON.parse(data);
+      data = JSON.parse(data);
       const decrypted = decrypt(content, data.secret, iv);
 
       // push the message to the chat history
@@ -165,8 +158,8 @@ export function newMessage() {
 socket.on("reciveFile", (from, content, iv) => {});*/
 
 export function deleteChat(user, secret) {
+  localStorage.removeItem(user);
   socket.emit("requestDeleteChat", {user, secret});
-  localStorage.removeItem(username);
 }
 
 export function deleteChatRequest() {
