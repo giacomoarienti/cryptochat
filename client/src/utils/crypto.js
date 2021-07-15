@@ -1,28 +1,15 @@
-import { createDiffieHellman, createCipheriv, createDecipheriv, randomBytes, createHash } from "crypto";
+import { createECDH, createCipheriv, createDecipheriv, randomBytes, createHash } from "crypto";
 
-// Generate p, q, A
-function newDF() {
-  const prime = "14299306505472417903724747035584709851729305212987202207641311182210441408424585843851947737316100159618459651651808622339302961611623235004049075501251624600638457241010529208506856125126537859054974933017218192985402863377996043384923239809970383632711192997581738050775890524106085268769705510684196523960528964317786198638263804066146519381336046533990296433840586814928758164346941"
-  const alice = createDiffieHellman(prime);
+function newECDH() {
+  const ecdh = createECDH('secp256r1'); //secp521r1
   return [
-    alice,
-    {
-      A: alice.generateKeys(),
-      p: alice.getPrime(),
-      g: alice.getGenerator(),
-    },
+    ecdh,
+    ecdh.generateKeys()
   ];
 }
 
-// Complete DF with B
-function completeDF(df, B) {
-  return df.computeSecret(B);
-}
-
-// Calc shared secret K
-function reciveDF({p, g, A}) {
-  const bob = createDiffieHellman(p, g);
-  return { B: bob.generateKeys(), K: bob.computeSecret(A) };
+function completeECDH(ecdh, key) {
+  return ecdh.computeSecret(key);
 }
 
 // Get key
@@ -35,11 +22,11 @@ function encrypt(key, text) {
   const iv = randomBytes(16);
   const cipher = createCipheriv("aes-256-cbc", key, iv);
 
-  const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+  const encrypted = Buffer.concat([cipher.update(text, 'utf-8'), cipher.final()]).toString('base64');
 
   return {
     iv: iv.toString("hex"),
-    content: encrypted.toString("hex"),
+    content: encrypted,
   };
 }
 
@@ -50,21 +37,24 @@ function decrypt(content, key, iv) {
     key,
     Buffer.from(iv, "hex")
   );
-  const decrpyted = Buffer.concat([
-    decipher.update(Buffer.from(content, "hex")),
-    decipher.final(),
-  ]);
 
-  return decrpyted.toString();
+  var decrypted = decipher.update(content, 'base64', 'utf-8');
+  decrypted += decipher.final();
+
+  return decrypted;
 }
 
-export {newDF, completeDF, reciveDF, getKey, encrypt, decrypt}
+export {newECDH, completeECDH, getKey, encrypt, decrypt}
 
-/*const [df, AKeys] = newDF();
-const BKeys = reciveDF(AKeys);
-const K = completeDF(df, BKeys.B);*/
+/*
+const [ecdha, A] = newECDH();
+const [ecdhb, B] = newECDH();
 
-/*const key = getKey(K);
-const encrypted = encrypt(key, "Text");
-const decrypted = decrypt(encrypted, key);
+const KA = completeECDH(ecdha, B);
+const KB = completeECDH(ecdhb, A);
+
+let key = getKey(KA);
+
+const {iv, content} = encrypt(key, "Text");
+const decrypted = decrypt(content, key, iv);
 */
