@@ -7,8 +7,26 @@ import {
 } from "../utils/crypto";
 import { checkUser } from "./userService";
 import { io } from "socket.io-client";
+import { backend } from "./info";
 
-export const socket = io();
+function getCookies(cookiesString) {
+  return cookiesString.split(";")
+    .map(function(cookieString) {
+        return cookieString.trim().split("=");
+    })
+    .reduce(function(acc, curr) {
+        acc[curr[0]] = curr[1];
+        return acc;
+    }, {});
+}
+
+const token = getCookies(document.cookie)["token"]
+
+export const socket = io(backend + "/chat", {
+  auth: {
+    token: token
+  }
+});
 
 // create new chat when form is submitted
 export const newChatRequest = async (reciver) => {
@@ -25,7 +43,7 @@ export const newChatRequest = async (reciver) => {
 
   // new chat event
   socket.emit("newChatRequestOut", {
-    reciver: reciver,
+    reciver,
     keys,
   });
 
@@ -96,7 +114,7 @@ export const sendMessage = (message, user) => {
 };
 
 // save incoming chat request
-export function chatRequestIn(from, keys) {
+export function chatRequestIn({from, keys}) {
   if (localStorage.getItem(from) === null) {
     localStorage.setItem(
       from,
@@ -150,22 +168,16 @@ export function newMessage(from, content, iv) {
 /* TODO: to implement
 socket.on("reciveFile", (from, content, iv) => {});*/
 
-export function deleteChat(user, secret) {
+export function deleteChat(user, status, secret) {
   localStorage.removeItem(user);
-  socket.emit("requestDeleteChat", { user, secret });
+  if(status === "completed") {
+    socket.emit("requestDeleteChat", { user, secret });
+  }
 }
 
 export function deleteChatRequest(from, secret) {
   let data = localStorage.getItem(from);
   if (data !== undefined) {
-    if (data.status === "completed") {
-      data = JSON.parse(data);
-
-      if (data.secret === secret) {
-        localStorage.removeItem(from);
-      }
-    } else {
-      localStorage.removeItem(from);
-    }
+    localStorage.removeItem(from);
   }
 }

@@ -1,4 +1,6 @@
 const crypto = require('crypto');
 
-jwtsecret = crypto.randomBytes(64).toString('hex');
+//const jwtsecret = crypto.randomBytes(64).toString('hex');
+// TODO: delete me
+const jwtsecret = "gigiodonnarumma";
 module.exports = jwtsecret;

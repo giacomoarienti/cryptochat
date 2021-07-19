@@ -6,7 +6,7 @@ module.exports = function(app) {
 
     app.post("/api/user/register", isNotAuthed, registerUser);
 
-    app.get("/api/user/logout", isAuthed, logoutUser);
+    app.get("/api/user/logout", [], logoutUser);
 
     app.get("/api/user/:username", isAuthed, (req, res) => {
         if(checkUser(req.params.username)) {

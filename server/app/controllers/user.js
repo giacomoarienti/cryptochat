@@ -31,13 +31,22 @@ const registerUser = (req, res) => {
 
   // set the token
   res
-    .cookie("token", jwtToken, { expires: new Date(Date.now() + 86400000), httpOnly: true })
+    .cookie("token", jwtToken, { expires: new Date(Date.now() + 86400000), httpOnly: false })
     .sendStatus(200);
 };
 
 // return token from req username
 const getUser = (req, res) => {
-  return res.status(200).json({ username: req.username });
+  if(req.username) {
+    // TODO: delete me
+    if(!users.includes(req.username)) {
+      users.push(req.username);
+    }
+
+    return res.status(200).json({ username: req.username });
+  }
+
+  return res.sendStatus(400);
 };
 
 function removeUser(username) {
@@ -47,12 +56,11 @@ function removeUser(username) {
 }
 
 const logoutUser = (req, res) => {
-  if(req.username || req.username !== "") {
+  if(req.username && req.username !== "") {
     removeUser(req.username);
   }
 
-  res.clearCookie("token");
-  res.sendStatus(200);
+  res.clearCookie("token").sendStatus(200);
 };
 
 function checkUser(username) {

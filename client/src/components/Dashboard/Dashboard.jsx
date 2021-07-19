@@ -18,11 +18,10 @@ class Dashboard extends Component {
       loading: false,
       currentUser: null,
       errorMessage: "",
-      username: null,
+      username: this.props.username,
       message: ""
     };
 
-    this.setState({username: this.props.username});
     this.checkAuth();
 
     this.sendMessageH = this.sendMessageH.bind(this);
@@ -42,8 +41,8 @@ class Dashboard extends Component {
     socket.on("requestDeleteChat", (from, secret) => deleteChatRequest(from, secret));
     socket.on("newMessage", (from, content, iv) => newMessage(from, content, iv));
     socket.on("chatRequestComplete", (from, keys) => chatRequestComplete(from, keys));
-    socket.on("newChatRequestIn", (from, keys) => chatRequestIn(from, keys));
-    
+    socket.on("newChatRequestIn", ({from, keys}) => chatRequestIn({from, keys}));
+
     window.addEventListener('storage', () => this.setState({}));
   }
 
@@ -64,9 +63,6 @@ class Dashboard extends Component {
       this.setState({errorMessage: "Invalid username!"})
       return
     }
-
-    console.log(reciver);
-    console.log(this.state.username);
 
     this.setState({loading: true});
 

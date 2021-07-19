@@ -1,23 +1,23 @@
-const cookie = require('cookie');
-const getToken = require('../controllers/auth');
-
-
-const getUsernameFromToken = (token) => {
-  const decoded = getToken(token);
-  return decoded.username;
-}
+const jwt = require("jsonwebtoken");
+const jwtsecret = require("../config/auth");
 
 // Socket.io middleware, check authentication
 module.exports = function (io) {
   io.use((socket, next) => {
-    if (socket.handshake.headers.cookie) {
-      socket.username = getUsernameFromToken(socket.handshake.headers.cookie);
-      socket.id = socket.username;
-      if (socket.username) {
-        return next();
-      }
+    if (socket.handshake.auth && socket.handshake.auth.token) {
+      jwt.verify(socket.handshake.auth.token, jwtsecret, (err, decoded) => {
+        if (err) {
+          return next(new Error("Unauthenticated!"));
+        }
+    
+        socket.username = decoded.username;
+      });
     }
-      
+
+    if (socket.username) {
+      return next();
+    }
+
     next(new Error("Unauthenticated!"));
   });
 };

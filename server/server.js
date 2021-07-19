@@ -20,13 +20,15 @@ app.get("/", (req, res) => {
   res.status(200).send();
 });
 
-require("./app/routes/auth")(app);
 require("./app/routes/user")(app);
 require("./app/routes/file")(app);
 
 // Socket.io
 const server = require('http').createServer(app)
 const io = require("socket.io")(server, {
+  path: "/chat",
+  pingInterval: 10000,
+  pingTimeout: 5000,
   cors: {
     origin: [process.env.CORS],
   },
@@ -37,6 +39,6 @@ require("./app/controllers/chat")(io);
 
 
 const port = process.env.PORT || 8000;
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server started on port ${port} 🚀`);
 });
